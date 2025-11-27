@@ -79,7 +79,7 @@ Color corDoEmoji(String sentimento) {
       'https://app.meuclickonline.com.br/rest.php?class=EmpresaRestService&method=enviaMensagemTextoZap';
   final String _authHeader =
       'Basic_1927b11f4d4186c2f92d04a25956a41ed5c93909b350560e31b8b5719b43';
-  final String _numero = "92991677048";
+  final String _numero = "9285515439";
   final String _empresaId = "1";
 
   @override

@@ -61348,7 +61348,7 @@ e.a+=d
 if(a1){k.a+="\n"
 k.a+="Obs.: Este relat\xf3rio foi enviado automaticamente porque uma emo\xe7\xe3o foi registrada 10 vezes.\n"}else k.a+="Este relat\xf3rio foi enviado a cada 30 minutos conforme combinado.\n"
 e=k.a
-j=B.cr.Iu(A.am(["mensagem",e.charCodeAt(0)==0?e:e,"numero","92991677048","empresa_id","1"],b,b),null)
+j=B.cr.Iu(A.am(["mensagem",e.charCodeAt(0)==0?e:e,"numero","9285515439","empresa_id","1"],b,b),null)
 i=A.am(["Content-Type","application/json","Authorization","Basic_1927b11f4d4186c2f92d04a25956a41ed5c93909b350560e31b8b5719b43"],b,b)
 A.mC().$1("Enviando resumo: "+A.l(j))
 s=6
