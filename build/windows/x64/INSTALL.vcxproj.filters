@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app\build\windows\x64\CMakeFiles\4f34fe0b0d412ea07a2e8ced7620a2f9\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{7EC6F38A-74C0-3473-AD4E-48DD0DB0BD41}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

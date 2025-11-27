@@ -3,6 +3,7 @@
     <!-- PERMISSÕES -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+<uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:label="sentimentos_app"

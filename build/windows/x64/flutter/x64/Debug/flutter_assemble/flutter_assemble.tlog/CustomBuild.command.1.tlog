@@ -1,0 +1,28 @@
+^C:\USERS\ADMIN\DESKTOP\PROJETOS\FACUL\SENTIMENTOS_APP\BUILD\WINDOWS\X64\CMAKEFILES\89B6FEED1C3E580E888CFC2915EB2295\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\Users\admin\dev\flutter PROJECT_DIR=C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app FLUTTER_ROOT=C:\Users\admin\dev\flutter FLUTTER_EPHEMERAL_DIR=C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app\windows\flutter\ephemeral PROJECT_DIR=C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app FLUTTER_TARGET=C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app\lib\main.dart DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuMzIuOA==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049ZWRhZGE3YzU2ZQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049ZWYwY2QwMDA5MQ==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My44LjE= DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=C:\Users\admin\Desktop\Projetos\Facul\sentimentos_app\.dart_tool\package_config.json C:/Users/admin/dev/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\ADMIN\DESKTOP\PROJETOS\FACUL\SENTIMENTOS_APP\BUILD\WINDOWS\X64\CMAKEFILES\4C0D0959E932AAAFA5E83E25F7AA77D2\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\ADMIN\DESKTOP\PROJETOS\FACUL\SENTIMENTOS_APP\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/windows -BC:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/windows/x64 --check-stamp-file C:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

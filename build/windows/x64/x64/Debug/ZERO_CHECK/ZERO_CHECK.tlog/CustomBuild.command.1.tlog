@@ -1,0 +1,10 @@
+^C:\USERS\ADMIN\DESKTOP\PROJETOS\FACUL\SENTIMENTOS_APP\BUILD\WINDOWS\X64\CMAKEFILES\4F34FE0B0D412EA07A2E8CED7620A2F9\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/windows -BC:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/windows/x64 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/windows/x64/sentimentos_app.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

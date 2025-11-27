@@ -1,0 +1,2 @@
+C:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/.cxx/RelWithDebInfo/394u5673/x86/CMakeFiles/edit_cache.dir
+C:/Users/admin/Desktop/Projetos/Facul/sentimentos_app/build/.cxx/RelWithDebInfo/394u5673/x86/CMakeFiles/rebuild_cache.dir
