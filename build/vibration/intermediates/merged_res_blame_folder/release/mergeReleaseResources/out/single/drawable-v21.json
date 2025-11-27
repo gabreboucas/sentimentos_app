@@ -1,6 +1,0 @@
-[
-    {
-        "merged": "com.benjaminabel.vibration-release-25:/drawable-v21/notification_action_background.xml",
-        "source": "com.benjaminabel.vibration-core-1.13.1-10:/drawable-v21/notification_action_background.xml"
-    }
-]
