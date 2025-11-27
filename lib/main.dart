@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:vibration/vibration.dart';
@@ -37,81 +36,77 @@ class _EmojiHomePageState extends State<EmojiHomePage>
   String emojiAtual = "🙂";
   String sentimentoAtual = "Neutro";
 
-  // Pulsar contínuo do emoji
+  final TextEditingController _numeroController = TextEditingController();
+
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
 
-  // Gradiente animado
   late final AnimationController _gradController;
   late final Animation<Color?> _color1;
   late final Animation<Color?> _color2;
-Color corDoEmoji(String sentimento) {
-  switch (sentimento) {
-    case "Medo":
-      return Colors.deepPurple;
-    case "Satisfeito":
-      return Colors.green;
-    case "Com Fome":
-      return Colors.orange;
-    case "Relaxado":
-      return Colors.blue;
-    case "Triste":
-      return Colors.indigo;
-    default:
-      return Colors.grey;
-  }
-}
 
-  // Contadores por sentimento
+  Color corDoEmoji(String sentimento) {
+    switch (sentimento) {
+      case "Medo":
+        return Colors.deepPurple;
+      case "Satisfeito":
+        return Colors.green;
+      case "Fome":
+        return Colors.orange;
+      case "Relaxado":
+        return Colors.blue;
+      case "Triste":
+        return Colors.indigo;
+      default:
+        return Colors.grey;
+    }
+  }
+
   final Map<String, int> _contadores = {
     "Medo": 0,
     "Satisfeito": 0,
-    "Com Fome": 0,
+    "Fome": 0,
     "Relaxado": 0,
     "Triste": 0,
   };
 
-  // Timer para enviar resumo a cada 30 minutos
   Timer? _resumoTimer;
 
-  // Configuração da API (coloque aqui se quiser externalizar)
   final String _apiUrl =
       'https://app.meuclickonline.com.br/rest.php?class=EmpresaRestService&method=enviaMensagemTextoZap';
+
   final String _authHeader =
       'Basic_1927b11f4d4186c2f92d04a25956a41ed5c93909b350560e31b8b5719b43';
-  final String _numero = "9285515439";
+
+  String get _numero => _numeroController.text.trim();
   final String _empresaId = "1";
 
   @override
   void initState() {
     super.initState();
 
-    // Pulsar contínuo
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    _pulseController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.12).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Gradiente
     _gradController =
         AnimationController(vsync: this, duration: const Duration(seconds: 5))
           ..repeat(reverse: true);
-    _color1 = ColorTween(begin: Colors.purple.shade200, end: Colors.blue.shade200)
-        .animate(_gradController);
-    _color2 = ColorTween(begin: Colors.orange.shade200, end: Colors.pink.shade200)
-        .animate(_gradController);
 
-    // Inicializa o timer de resumo: 30 minutos
-    // Para testes locais você pode usar Duration(minutes: 1)
+    _color1 =
+        ColorTween(begin: Colors.purple.shade200, end: Colors.blue.shade200)
+            .animate(_gradController);
+    _color2 =
+        ColorTween(begin: Colors.orange.shade200, end: Colors.pink.shade200)
+            .animate(_gradController);
+
     _resumoTimer = Timer.periodic(const Duration(minutes: 30), (_) {
       _enviarResumoSeNecessario();
     });
-
-    // Opcional: também iniciar envio imediato no startup se quiser
   }
 
   @override
@@ -119,10 +114,10 @@ Color corDoEmoji(String sentimento) {
     _pulseController.dispose();
     _gradController.dispose();
     _resumoTimer?.cancel();
+    _numeroController.dispose();
     super.dispose();
   }
 
-  // Função ao clicar no botão de sentimento
   Future<void> trocarEmoji(String novoEmoji, String sentimento) async {
     setState(() {
       emojiAtual = novoEmoji;
@@ -134,35 +129,38 @@ Color corDoEmoji(String sentimento) {
       Vibration.vibrate(duration: 150);
     }
 
-    // Notificação local simples
     NotificacaoService.enviarNotificacao(
       titulo: "Estado do Filho",
       corpo: "Ele está: $sentimento",
     );
 
-    // Se este sentimento foi pressionado 10x ou mais, envia resumo imediatamente e reseta
     if ((_contadores[sentimento] ?? 0) >= 10) {
       await _enviarResumo(disparoPorLimite: true);
     }
   }
 
-  // Decide se há algo a enviar: se houver contagens > 0
   Future<void> _enviarResumoSeNecessario() async {
-    final totalClicks = _contadores.values.fold<int>(0, (a, b) => a + b);
-    if (totalClicks > 0) {
+    final total = _contadores.values.fold(0, (a, b) => a + b);
+
+    if (total > 0) {
       await _enviarResumo(disparoPorLimite: false);
-    } else {
-      // nada para enviar
-      debugPrint("Resumo: nada para enviar (contadores zerados).");
     }
   }
 
-  // Envia resumo por POST para API
   Future<void> _enviarResumo({required bool disparoPorLimite}) async {
     try {
-      // calcula o sentimento predominante
+      if (_numero.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Digite um número de WhatsApp antes de enviar."),
+          ),
+        );
+        return;
+      }
+
       String predominante = "Neutro";
       int maior = 0;
+
       _contadores.forEach((k, v) {
         if (v > maior) {
           maior = v;
@@ -170,24 +168,17 @@ Color corDoEmoji(String sentimento) {
         }
       });
 
-      // monta o corpo com contagem por sentimento
-      final resumoPartes = _contadores.entries
-          .map((e) => "${e.key}: ${e.value}x")
-          .toList(growable: false);
-      final resumoCounts = resumoPartes.join(", ");
-
-      // mensagem amigável e bonita para o pai
       final mensagemPredominante = _mensagemParaPai(predominante, maior);
 
       final mensagemFinal = StringBuffer();
       mensagemFinal.writeln(mensagemPredominante);
+
       if (disparoPorLimite) {
-        mensagemFinal.writeln("");
         mensagemFinal.writeln(
-            "Obs.: Este relatório foi enviado automaticamente porque uma emoção foi registrada 10 vezes.");
+            "\nObs.: Relatório enviado automaticamente após 10 registros.");
       } else {
-        mensagemFinal.writeln(
-            "Este relatório foi enviado a cada 30 minutos conforme combinado.");
+        mensagemFinal
+            .writeln("Relatório enviado automaticamente a cada 30 minutos.");
       }
 
       final body = jsonEncode({
@@ -201,54 +192,35 @@ Color corDoEmoji(String sentimento) {
         "Authorization": _authHeader,
       };
 
-      debugPrint("Enviando resumo: $body");
-
-      final resp = await http.post(Uri.parse(_apiUrl), headers: headers, body: body);
+      final resp =
+          await http.post(Uri.parse(_apiUrl), headers: headers, body: body);
 
       if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        // sucesso
-        debugPrint("Resumo enviado com sucesso: ${resp.statusCode}");
-        // notificar localmente que envio ocorreu
         NotificacaoService.enviarNotificacao(
-            titulo: "Resumo enviado", corpo: "Resumo do estado do seu filho foi enviado.");
-      } else {
-        debugPrint(
-            "Falha ao enviar resumo. status=${resp.statusCode}, body=${resp.body}");
-        // opcional: notificar erro
-        NotificacaoService.enviarNotificacao(
-            titulo: "Erro ao enviar resumo",
-            corpo: "Não foi possível enviar o resumo (erro ${resp.statusCode}).");
+            titulo: "Resumo enviado",
+            corpo: "Resumo do estado do seu filho foi enviado.");
       }
-    } catch (e, st) {
-      debugPrint("Erro ao enviar resumo: $e\n$st");
-      NotificacaoService.enviarNotificacao(
-          titulo: "Erro ao enviar resumo", corpo: "Ocorreu um erro ao enviar o resumo.");
+    } catch (e) {
+      debugPrint("Erro ao enviar resumo: $e");
     } finally {
-      // sempre resetar contadores após tentativa de envio (pedido)
       _resetContadores();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Resumo enviado e contadores resetados.')),
-        );
-      }
     }
   }
 
-  // Mensagens "bonitinhas" dependendo do sentimento predominante
   String _mensagemParaPai(String sentimento, int vezes) {
     switch (sentimento) {
       case "Medo":
-        return "Seu filho parece estar com medo com mais frequência ($vezes vezes). Fique atento a sinais de insegurança e ofereça conforto e segurança.";
+        return "Seu filho demonstrou medo $vezes vezes.";
       case "Satisfeito":
-        return "Seu filho parece estar feliz e satisfeito ($vezes vezes). Ótimo! Continue com as rotinas que o deixam bem.";
+        return "Seu filho se mostrou feliz/satisfeito $vezes vezes.";
       case "Com Fome":
-        return "Seu filho apresentou sinais de fome ($vezes vezes). Talvez seja um bom momento para oferecer um lanchinho nutritivo.";
+        return "Ele mostrou sinais de fome $vezes vezes.";
       case "Relaxado":
-        return "Seu filho está calmo e relaxado ($vezes vezes). Excelente — parece estar confortável e tranquilo.";
+        return "Ele ficou relaxado $vezes vezes.";
       case "Triste":
-        return "Seu filho apresentou tristeza ($vezes vezes). Observe se há um padrão e ofereça atenção e acolhimento.";
+        return "Ele ficou triste $vezes vezes.";
       default:
-        return "Não houve um sentimento predominante claro.";
+        return "Nenhum sentimento predominante.";
     }
   }
 
@@ -256,7 +228,6 @@ Color corDoEmoji(String sentimento) {
     _contadores.updateAll((key, value) => 0);
   }
 
-  // UI responsiva
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -264,132 +235,99 @@ Color corDoEmoji(String sentimento) {
       builder: (context, _) {
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: SafeArea(
-            child: LayoutBuilder(builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              final height = constraints.maxHeight;
-              final isPortrait = height > width;
-
-              // responsive sizes
-              final emojiSize = (isPortrait ? height : width) * 0.18;
-              final circlePadding = emojiSize * 0.4;
-
-              return Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_color1.value!, _color2.value!],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_color1.value!, _color2.value!],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              child: Center(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: height),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        const SizedBox(height: 12),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Campo WhatsApp
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: TextField(
+                          controller: _numeroController,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: "Número do WhatsApp (DDD + número)",
+                            hintText: "Exemplo: 92991677048",
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+
+                      // Emoji central
+                      ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: Container(
+                          padding: const EdgeInsets.all(50),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: corDoEmoji(sentimentoAtual).withOpacity(0.2),
+                          ),
                           child: Text(
-                            "Como seu filho está agora",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
+                            emojiAtual,
+                            style: const TextStyle(fontSize: 80),
                           ),
                         ),
-                        ScaleTransition(
-                          scale: _pulseAnimation,
-                          child: Container(
-                            padding: EdgeInsets.all(circlePadding),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      corDoEmoji(sentimentoAtual).withOpacity(0.45),
-                                  blurRadius: 40,
-                                  spreadRadius: 10,
-                                ),
-                              ],
-                              color: corDoEmoji(sentimentoAtual).withOpacity(0.18),
-                            ),
-                            child: Text(
-                              emojiAtual,
-                              style: TextStyle(fontSize: emojiSize),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Contadores de emoções
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: _contadores.entries.map((e) {
+                            return Chip(
+                              label: Text("${e.key}: ${e.value}"),
+                              backgroundColor: corDoEmoji(e.key).withOpacity(0.2),
+                            );
+                          }).toList(),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            sentimentoAtual,
-                            style: TextStyle(
-                              fontSize: isPortrait ? 20 : 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        // Mostrar contadores rapidamente (opcional)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.center,
-                            children: _contadores.entries.map((e) {
-                              return Chip(
-                                label: Text("${e.key}: ${e.value}"),
-                                backgroundColor:
-                                    corDoEmoji(e.key).withOpacity(0.2),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // botões responsivos
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            alignment: WrapAlignment.center,
-                            children: [
-                              _botaoResponsivo("Medo", "😨"),
-                              _botaoResponsivo("Satisfeito", "😄"),
-                              _botaoResponsivo("Com Fome", "😋"),
-                              _botaoResponsivo("Relaxado", "😌"),
-                              _botaoResponsivo("Triste", "😢"),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        // botão manual: enviar resumo agora (útil para teste)
-                        ElevatedButton.icon(
-                          onPressed: _enviarResumoSeNecessario,
-                          icon: const Icon(Icons.send),
-                          label: const Text("Enviar resumo agora"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black87,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 12),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Botões
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _botaoResponsivo("Medo", "😨"),
+                          _botaoResponsivo("Satisfeito", "😄"),
+                          _botaoResponsivo("Fome", "😋"),
+                          _botaoResponsivo("Relaxado", "😌"),
+                          _botaoResponsivo("Triste", "😢"),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+
+                      ElevatedButton.icon(
+                        onPressed: _enviarResumoSeNecessario,
+                        icon: const Icon(Icons.send),
+                        label: const Text("Enviar resumo agora"),
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
         );
       },
@@ -402,22 +340,22 @@ Color corDoEmoji(String sentimento) {
       child: ElevatedButton(
         onPressed: () => trocarEmoji(emoji, sentimento),
         style: ElevatedButton.styleFrom(
-          backgroundColor: corDoEmoji(sentimento),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          backgroundColor: corDoEmoji(sentimento), // cor do botão
+          foregroundColor: Colors.white,           // garante texto branco
+          shadowColor: Colors.transparent,         // tira sombra se aparecer
+          side: BorderSide.none,                   // tira borda branca
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                sentimento,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
+            Text(emoji, style: const TextStyle(fontSize: 18, color: Colors.white)),
+            const SizedBox(width: 8),
+            Text(
+              sentimento,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
         ),
@@ -427,31 +365,29 @@ Color corDoEmoji(String sentimento) {
 }
 
 // =========================================
-// SERVIÇO DE NOTIFICAÇÃO LOCAL
+// NOTIFICAÇÕES
 // =========================================
+
 class NotificacaoService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
   static Future inicializar() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const settings = InitializationSettings(android: androidSettings);
+    const initSettings = InitializationSettings(android: androidSettings);
+    await _plugin.initialize(initSettings);
 
-    await _plugin.initialize(settings);
-
-    // Cria canal obrigatório no Android 8+
-    const androidChannel = AndroidNotificationChannel(
+    const channel = AndroidNotificationChannel(
       'sentimentos_channel',
       'Notificações de Emoções',
-      description: 'Canal para notificações de sentimentos do filho',
+      description: 'Canal para notificações do app',
       importance: Importance.high,
     );
 
-    final androidImplementation = _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    if (androidImplementation != null) {
-      await androidImplementation.createNotificationChannel(androidChannel);
-    }
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    androidImpl?.createNotificationChannel(channel);
   }
 
   static Future enviarNotificacao({
